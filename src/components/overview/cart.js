@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useProduct } from "../../contexts/ProductContext.js";
-import axios from "axios";
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
+import React, { useState, useEffect } from 'react';
+import { useProduct } from '../../contexts/ProductContext.js';
+import axios from 'axios';
 
 export default function Cart() {
   const { styleReducer } = useProduct();
@@ -12,7 +8,8 @@ export default function Cart() {
   const [skus, setSkus] = useState();
   const [sku, setSku] = useState();
   const [quantity, setQuantity] = useState();
-  const [selected, setSelected] = useState("");
+  const [firstSelected, setFirstSelected] = useState('');
+  const [selected, setSelected] = useState('');
 
   // Set SKUs only after currentStyle has loaded
   useEffect(() => {
@@ -20,7 +17,7 @@ export default function Cart() {
       setSkus(stateVal.currentStyle.skus);
     }
     if (sku) {
-      setSelected("");
+      setSelected('');
     }
     if (quantity) {
       setQuantity();
@@ -49,26 +46,70 @@ export default function Cart() {
     setSelected(e.target.value);
   }
 
+  //Change current first SKU based on size
+  function setSkuOnFirstChange(e) {
+    var skus = Object.keys(stateVal.currentStyle.skus);
+    setSku(parseInt(skus[e.target.value]));
+    setFirstSelected(e.target.value);
+  }
+
   //Add to cart
   function addToCart(e) {
     e.preventDefault();
     if (!sku || !quantity) {
-      alert('Please select size!')
-    } else {    axios
-      .post("http://localhost:3000/cart", {
-        sku_id: sku,
-      })
-      .then((response) => {
-        console.log("Added to cart!");
-      })
-      .catch((err) => {
-        console.error(err);
-      });}
+      alert('Please select size!');
+    } else {
+      axios
+        .post('http://localhost:3000/cart', {
+          sku_id: sku,
+        })
+        .then((response) => {
+          console.log('Added to cart!');
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   }
 
+  const cartStyle = {
+    display: 'flex',
+  };
+
   return (
-    <div>
-      <div>
+    <div style={cartStyle}>
+      <div className="order">
+        <form onSubmit={addToCart} className="cart-form">
+          <select value={firstSelected} onChange={setSkuOnFirstChange}>
+            <option>Select Size</option>
+            {skus &&
+              Object.values(skus).map((sku, index) => {
+                return (
+                  <option key={index} value={index}>
+                    {sku.size}
+                  </option>
+                );
+              })}
+          </select>
+          <br></br>
+          <select name="quantity">
+            {skus &&
+              sku &&
+              quantity &&
+              quantity.map((quant) => {
+                return (
+                  <option key={quant} value={quant}>
+                    {quant}
+                  </option>
+                );
+              })}
+          </select>
+          <button type="submit" className="add-to-cart-button">
+            Add to Cart!
+          </button>
+        </form>
+      </div>
+      <div className="additional-order">
         <form onSubmit={addToCart} className="cart-form">
           <select value={selected} onChange={setSkuOnChange}>
             <option>Select Size</option>
@@ -94,7 +135,9 @@ export default function Cart() {
                 );
               })}
           </select>
-          <button type="submit" className="add-to-cart-button">Add to Cart!</button>
+          <button type="submit" className="add-to-cart-button">
+            Add to Cart!
+          </button>
         </form>
       </div>
     </div>
